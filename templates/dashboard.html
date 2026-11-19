@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - AI Resume Analyzer{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <h2>Welcome, {{ user }} 👋</h2>
+    <p style="color: var(--text-secondary);">Analyze your resume against your dream job role and get instant AI feedback.</p>
+</div>
+
+<div class="card">
+    <h3>Resume Analyzer</h3>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="role">Target Job Role <span style="color: var(--danger);">*</span></label>
+            <input type="text" id="role" name="role" value="{{ role or '' }}" placeholder="e.g. Senior Backend Engineer, Full Stack Developer, Data Scientist" required>
+        </div>
+
+        <div class="form-group">
+            <label for="file">Upload Resume (PDF or TXT accepted):</label>
+            <div class="file-upload-box">
+                <p>📄 Choose a <strong>.PDF</strong> or <strong>.TXT</strong> file</p>
+                <input type="file" id="file" name="file" accept=".pdf,.txt">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="resume">Or Paste Resume Text:</label>
+            <textarea id="resume" name="resume" placeholder="Paste your resume content here...">{{ resume or '' }}</textarea>
+        </div>
+
+        <button type="submit">⚡ Analyze Resume</button>
+    </form>
+</div>
+
+{% if result %}
+    {% if result.error %}
+    <div class="alert alert-danger">
+        <strong>Error:</strong> {{ result.error }}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="result-header">
+            <div>
+                <h3>Analysis Result for: <em>{{ role }}</em></h3>
+                {% if result.provider %}
+                <small style="color: var(--text-secondary);">Powered by {{ result.provider }} ({{ result.model }})</small>
+                {% endif %}
+            </div>
+            {% if result.match_percentage %}
+            <div class="score-badge {% if result.match_percentage >= 70 %}high{% elif result.match_percentage >= 40 %}medium{% endif %}">
+                Match Score: {{ result.match_percentage }}%
+            </div>
+            {% endif %}
+        </div>
+
+        {% if result.summary %}
+        <div style="background: var(--bg-main); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+            <strong>Executive Summary:</strong>
+            <p>{{ result.summary }}</p>
+        </div>
+        {% endif %}
+
+        <h4>✅ Matched Skills</h4>
+        {% if result.get("skills") %}
+        <ul class="badge-list">
+            {% for s in result.get("skills", []) %}
+            <li class="badge badge-success">{{ s }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">No specific skills matched.</p>
+        {% endif %}
+
+        <h4>⚠️ Missing Skills for {{ role }}</h4>
+        {% if result.get("missing_skills") %}
+        <ul class="badge-list">
+            {% for s in result.get("missing_skills", []) %}
+            <li class="badge badge-danger">{{ s }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">Great match! No critical missing skills found.</p>
+        {% endif %}
+
+        <h4>🗺️ Recommended Learning Roadmap</h4>
+        {% if result.get("Roadmap") %}
+        <ul class="timeline">
+            {% for step in result.get("Roadmap", []) %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">Roadmap not generated.</p>
+        {% endif %}
+
+        <h4>💡 Target Interview Questions</h4>
+        {% if result.get("interview_queastions") %}
+        <ol class="qa-list">
+            {% for q in result.get("interview_queastions", []) %}
+            <li>{{ q }}</li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p style="color: var(--text-secondary);">No interview questions generated.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,9 @@
+venv
+
+A> flask 2
+B> flask 3
+with venv
+command-> py -m venv venv
+command activate => .\venv\Scripts\Activate.ps1
+
+1-step's-setup
